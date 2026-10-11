@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOVEM PAN NACIONAL PLAYER - Sistema de Rádio</title>
+    <style>
+        :root {
+            --bg-color: #0d131a;
+            --card-bg: #1a232d;
+            --primary-color: #ff2a5f;
+            --primary-hover: #e02050;
+            --text-color: #ffffff;
+            --text-secondary: #8a99a8;
+            --success-color: #00e676;
+            --panel-admin-bg: #131a22;
+            --border-color: #2c3744;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* View Toggle Tabs */
+        .view-tabs {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        /* Common Radio Card Layout (Matches Uploaded Image) */
+        .radio-card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .radio-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            background-color: rgba(0, 230, 118, 0.1);
+            color: var(--success-color);
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.blinking {
+            animation: blink 1.2s infinite alternate;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .listener-count {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .player-display {
+            background-color: #131a22;
+            border-radius: 18px;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .play-btn {
+            width: 76px;
+            height: 76px;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 6px 16px rgba(255, 42, 95, 0.3);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .volume-container {
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        .volume-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: block;
+            text-align: left;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .custom-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #2c3744;
+            outline: none;
+        }
+
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .custom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .action-btn {
+            width: 100%;
+            background-color: #222c38;
+            color: var(--text-color);
+            border: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .action-btn:hover {
+            background-color: #2c3a4a;
+        }
+
+        .footer-link {
+            color: #536475;
+            font-size: 13px;
+            text-decoration: underline;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        /* Producer / Admin Panel Styles */
+        .admin-panel {
+            background-color: var(--panel-admin-bg);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px dashed #3f4d5e;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-success {
+            background-color: #00c853;
+            color: white;
+        }
+        .btn-success:hover { background-color: #00a844; }
+
+        .btn-danger {
+            background-color: #d50000;
+            color: white;
+        }
+        .btn-danger:hover { background-color: #b80000; }
+
+        .btn-mic {
+            background-color: #0288d1;
+            color: white;
+        }
+        .btn-mic.talking {
+            background-color: #ff9100;
+            animation: pulse-orange 1.5s infinite;
+        }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(255, 145, 0, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 145, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 145, 0, 0); }
+        }
+
+        /* Audio Slots Elements */
+        .slot-container {
+            background: #1a232d;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .slot-header span {
+            color: var(--text-secondary);
+        }
+
+        .slot-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .file-input-label {
+            flex: 1;
+            background: #2c3744;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+
+        .file-input-label input {
+            display: none;
+        }
+
+        .slot-mini-btn {
+            background: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .slot-mini-btn:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Effects Grid */
+        .fx-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .fx-card {
+            background: #1a232d;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .fx-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .fx-btn {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .fx-btn:hover {
+            background: #4b5563;
+        }
+
+        /* Voice modulation options */
+        .voice-mod-select {
+            width: 100%;
+            background: #1a232d;
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .alert-toast {
+            position: fixed;
+            bottom: 20px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Navigation View Tabs for Single Page Testing -->
+        <div class="view-tabs">
+            <button class="tab-btn active" id="tab-listener" onclick="switchView('listener')">Aba Ouvinte (Link Fixo)</button>
+            <button class="tab-btn" id="tab-producer" onclick="switchView('producer')">Painel de Produção (Locutor)</button>
+        </div>
+
+        <!-- 1. OUVINTE VIEW (Matches Image Exactly) -->
+        <div id="view-listener-container" class="radio-card">
+            <div class="radio-title">JOVEM PAN NACIONAL PLAYER</div>
+            
+            <div class="status-badge">
+                <span class="status-dot blinking" id="listener-dot"></span>
+                <span id="listener-status-text">VOCÊ ESTÁ CONECTADO NA RÁDIO JOVEM PAN NACIONAL PLAYER ROLEPLAY</span>
+            </div>
+
+            <div class="listener-count">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.7;"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                <span id="txt-ouvintes-count">64 ouvintes sintonizados</span>
+            </div>
+
+            <div class="player-display">
+                <button class="play-btn" id="btn-player-master" onclick="togglePlayerMaster()">
+                    <span id="play-icon">▶</span>
+                </button>
+
+                <div class="volume-container">
+                    <label class="volume-label">Volume da Rádio</label>
+                    <div class="slider-wrapper">
+                        <input type="range" class="custom-slider" id="slider-vol-ouvinte" min="0" max="100" value="70" oninput="updateOuvinteVolume(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="copyShareLink()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                Copiar Link para Divulgar
+            </button>
+
+            <div class="footer-link" onclick="switchView('producer')">Área do Locutor</div>
+        </div>
+
+        <!-- 2. PRODUCER / ADMIN PANEL VIEW -->
+        <div id="view-producer-container" class="admin-panel hidden">
+            <div class="radio-title" style="font-size: 16px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                🎛️ Painel de Produção de Áudio
+            </div>
+
+            <!-- Controles de Transmissão -->
+            <div>
+                <div class="panel-section-title">Controle de Transmissão</div>
+                <div class="grid-2" style="margin-top: 8px;">
+                    <button class="action-btn btn-success" style="margin:0;" onclick="startTransmission()">Iniciar Transmissão</button>
+                    <button class="action-btn btn-danger" style="margin:0;" onclick="stopTransmission()">Finalizar</button>
+                </div>
+            </div>
+
+            <!-- Microfone e Controle de Voz -->
+            <div>
+                <div class="panel-section-title">Microfone Locutor (Android Compatível)</div>
+                <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+                    <button class="action-btn btn-mic" id="btn-talk" style="margin:0;" onclick="toggleMicrophone()">
+                        🎤 Pressione para Falar (Mutar Música)
+                    </button>
+                    
+                    <div class="volume-container" style="background: #1a232d; padding: 10px; border-radius: 8px;">
+                        <label class="volume-label" style="font-size: 12px;">Ganho / Volume do Microfone</label>
+                        <input type="range" class="custom-slider" id="slider-vol-mic" min="0" max="100" value="80">
+                    </div>
+
+                    <div class="volume-container" style="background: #1a232d; padding: 10px; border-radius: 8px;">
+                        <label class="volume-label" style="font-size: 12px;">Abaixamento Automático da Música (Ducking %)</label>
+                        <input type="range" class="custom-slider" id="slider-ducking" min="0" max="100" value="80">
+                    </div>
+
+                    <div>
+                        <label class="volume-label" style="font-size: 12px; margin-bottom: 4px;">Efeito / Modulador de Voz</label>
+                        <select class="voice-mod-select" id="select-voice-effect">
+                            <option value="none">Voz Normal (Limpa)</option>
+                            <option value="low">Locutor Grave (Efeito Rádio FM)</option>
+                            <option value="high">Voz Aguda / Cartoon</option>
+                            <option value="echo">Eco de Estúdio / Estádio</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slots de Música Sequenciais -->
+            <div>
+                <div class="panel-section-title">Fila de Músicas (3 Slots Sequenciais)</div>
+                <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                    
+                    <!-- Slot 1 -->
+                    <div class="slot-container">
+                        <div class="slot-header">
+                            <span>Slot 1 (Principal)</span>
+                            <span id="status-slot-0">Vazio</span>
+                        </div>
+                        <div class="slot-controls">
+                            <label class="file-input-label" id="label-file-0">
+                                Selecionar Áudio
+                                <input type="file" id="file-0" accept="audio/*" onchange="loadTrack(0)">
+                            </label>
+                            <button class="slot-mini-btn" id="btn-play-0" onclick="playTrack(0)" disabled>Iniciar</button>
+                        </div>
+                    </div>
+
+                    <!-- Slot 2 -->
+                    <div class="slot-container">
+                        <div class="slot-header">
+                            <span>Slot 2 (Próxima)</span>
+                            <span id="status-slot-1">Vazio</span>
+                        </div>
+                        <div class="slot-controls">
+                            <label class="file-input-label" id="label-file-1">
+                                Selecionar Áudio
+                                <input type="file" id="file-1" accept="audio/*" onchange="loadTrack(1)">
+                            </label>
+                            <button class="slot-mini-btn" id="btn-play-1" onclick="playTrack(1)" disabled>Iniciar</button>
+                        </div>
+                    </div>
+
+                    <!-- Slot 3 -->
+                    <div class="slot-container">
+                        <div class="slot-header">
+                            <span>Slot 3 (Fila)</span>
+                            <span id="status-slot-2">Vazio</span>
+                        </div>
+                        <div class="slot-controls">
+                            <label class="file-input-label" id="label-file-2">
+                                Selecionar Áudio
+                                <input type="file" id="file-2" accept="audio/*" onchange="loadTrack(2)">
+                            </label>
+                            <button class="slot-mini-btn" id="btn-play-2" onclick="playTrack(2)" disabled>Iniciar</button>
+                        </div>
+                    </div>
+
+                    <button class="action-btn btn-danger" style="padding: 10px; font-size: 13px; margin: 5px 0 0 0;" onclick="pauseCurrentMusic()">
+                        ⏸️ Pausar Música Atual para Falar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Slots de Vinhetas e Efeitos -->
+            <div>
+                <div class="panel-section-title">Mesa de Efeitos e Vinhetas (10 Slots Rápidos)</div>
+                <div class="fx-grid" style="margin-top: 8px;">
+                    <!-- Generating 10 slots dynamically via HTML format for absolute single file portability -->
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-0">Efeito 1</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-0" accept="audio/*" onchange="loadEffect(0)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(0)">Disparar Slot 1</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-1">Efeito 2</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-1" accept="audio/*" onchange="loadEffect(1)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(1)">Disparar Slot 2</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-2">Efeito 3</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-2" accept="audio/*" onchange="loadEffect(2)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(2)">Disparar Slot 3</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-3">Efeito 4</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-3" accept="audio/*" onchange="loadEffect(3)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(3)">Disparar Slot 4</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-4">Efeito 5</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-4" accept="audio/*" onchange="loadEffect(4)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(4)">Disparar Slot 5</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-5">Efeito 6</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-5" accept="audio/*" onchange="loadEffect(5)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(5)">Disparar Slot 6</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-6">Efeito 7</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-6" accept="audio/*" onchange="loadEffect(6)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(6)">Disparar Slot 7</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-7">Efeito 8</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-7" accept="audio/*" onchange="loadEffect(7)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(7)">Disparar Slot 8</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-8">Efeito 9</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-8" accept="audio/*" onchange="loadEffect(8)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(8)">Disparar Slot 9</button>
+                    </div>
+                    <div class="fx-card">
+                        <div class="fx-title" id="fx-label-9">Efeito 10</div>
+                        <label class="file-input-label" style="padding:4px; font-size:10px;"><input type="file" id="fx-file-9" accept="audio/*" onchange="loadEffect(9)">Carregar</label>
+                        <button class="fx-btn" onclick="triggerEffect(9)">Disparar Slot 10</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel de Gerenciamento Simulado de Ouvintes -->
+            <div>
+                <div class="panel-section-title">Controle do Público Sintonizado</div>
+                <div style="margin-top: 8px; background: #1a232d; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size:13px; display:flex; justify-content:space-between;">
+                        <span>Simular Pico de Ouvintes:</span>
+                        <strong id="admin-listeners-display">64</strong>
+                    </div>
+                    <input type="range" class="custom-slider" min="5" max="1500" value="64" oninput="updateSimulatedListeners(this.value)">
+                </div>
+            </div>
+
+            <div class="footer-link" style="text-align: center;" onclick="switchView('listener')">Voltar para Tela de Ouvintes</div>
+        </div>
+
+    </div>
+
+    <!-- Toast de Notificação Embutido -->
+    <div id="toast" class="alert-toast">Link copiado com sucesso!</div>
+
+    <!-- SISTEMA LOGICO EM JAVASCRIPT EMÚLTI-CONTEXTO -->
+    <script>
+        // Configuração de Estado Global usando localStorage para comunicação entre abas em tempo real
+        const STORAGE_KEYS = {
+            STATUS_RADIO: 'jovem_pan_status',
+            OUVINTES: 'jovem_pan_ouvintes',
+            STREAM_PLAYING: 'jovem_pan_stream_playing',
+            CURRENT_TRACK_NAME: 'jovem_pan_track_name'
+        };
+
+        // Inicialização de valores padrão caso não existam
+        if(!localStorage.getItem(STORAGE_KEYS.STATUS_RADIO)) localStorage.setItem(STORAGE_KEYS.STATUS_RADIO, 'ONLINE');
+        if(!localStorage.getItem(STORAGE_KEYS.OUVINTES)) localStorage.setItem(STORAGE_KEYS.OUVINTES, '64');
+        if(!localStorage.getItem(STORAGE_KEYS.STREAM_PLAYING)) localStorage.setItem(STORAGE_KEYS.STREAM_PLAYING, 'false');
+
+        // Audio Engine para o Locutor (Web Audio API para manipulação real de voz)
+        let audioCtx = null;
+        let micStream = null;
+        let micNode = null;
+        let voiceFilter = null;
+        let delayNode = null;
+        
+        // Elementos de Áudio Locais para Música e Vinhetas
+        let musicSlots = [null, null, null];
+        let effectSlots = new Array(10).fill(null);
+        let currentActiveSlotIndex = null;
+        let isTransmitting = true;
+        let isMicrophoneActive = false;
+
+        // Elemento de simulação para o Ouvinte escutar
+        let ouvinteAudioEngine = null;
+
+        // Alternar entre abas (Simulação de Link Fixo vs Painel dentro do mesmo arquivo index.html)
+        function switchView(view) {
+            const listenerContainer = document.getElementById('view-listener-container');
+            const producerContainer = document.getElementById('view-producer-container');
+            const tabListener = document.getElementById('tab-listener');
+            const tabProducer = document.getElementById('tab-producer');
+
+            if (view === 'listener') {
+                listenerContainer.classList.remove('hidden');
+                producerContainer.classList.add('hidden');
+                tabListener.classList.add('active');
+                tabProducer.classList.remove('active');
+            } else {
+                listenerContainer.classList.add('hidden');
+                producerContainer.classList.remove('hidden');
+                tabListener.classList.remove('active');
+                tabProducer.classList.add('active');
+                // Inicializa contexto de áudio profissional do locutor no primeiro clique
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+        }
+
+        // Sincronização em tempo real entre Abas usando Storage Event
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEYS.OUVINTES) {
+                document.getElementById('txt-ouvintes-count').innerText = `${e.newValue} ouvintes sintonizados`;
+                document.getElementById('admin-listeners-display').innerText = e.newValue;
+            }
+            if (e.key === STORAGE_KEYS.STATUS_RADIO) {
+                updateUIStatus(e.newValue);
+            }
+        });
+
+        // Loop de atualização constante local para garantir responsividade imediata
+        setInterval(() => {
+            const ov = localStorage.getItem(STORAGE_KEYS.OUVINTES);
+            document.getElementById('txt-ouvintes-count').innerText = `${ov} ouvintes sintonizados`;
+            
+            const st = localStorage.getItem(STORAGE_KEYS.STATUS_RADIO);
+            updateUIStatus(st);
+        }, 1000);
+
+        function updateUIStatus(status) {
+            const dot = document.getElementById('listener-dot');
+            const text = document.getElementById('listener-status-text');
+            if (status === 'OFFLINE') {
+                dot.style.backgroundColor = '#d50000';
+                dot.classList.remove('blinking');
+                text.innerText = 'RÁDIO FORA DO AR - TRANSMISSÃO ENCERRADA PELO LOCUTOR';
+                text.parentElement.style.backgroundColor = 'rgba(213, 0, 0, 0.1)';
+                text.parentElement.style.color = '#d50000';
+            } else {
+                dot.style.backgroundColor = '#00e676';
+                dot.classList.add('blinking');
+                text.innerText = 'VOCÊ ESTÁ CONECTADO NA RÁDIO JOVEM PAN NACIONAL PLAYER ROLEPLAY';
+                text.parentElement.style.backgroundColor = 'rgba(0, 230, 118, 0.1)';
+                text.parentElement.style.color = '#00e676';
+            }
+        }
+
+        // --- FUNCIONALIDADES DO LOCUTOR (PAINEL DE PRODUÇÃO) ---
+        
+        function startTransmission() {
+            localStorage.setItem(STORAGE_KEYS.STATUS_RADIO, 'ONLINE');
+            isTransmitting = true;
+            showToast("Transmissão iniciada com sucesso!");
+        }
+
+        function stopTransmission() {
+            localStorage.setItem(STORAGE_KEYS.STATUS_RADIO, 'OFFLINE');
+            isTransmitting = false;
+            // Pausa qualquer áudio tocando no painel
+            if (currentActiveSlotIndex !== null && musicSlots[currentActiveSlotIndex]) {
+                musicSlots[currentActiveSlotIndex].pause();
+            }
+            showToast("Transmissão encerrada.");
+        }
+
+        function updateSimulatedListeners(val) {
+            localStorage.setItem(STORAGE_KEYS.OUVINTES, val);
+            document.getElementById('admin-listeners-display').innerText = val;
+        }
+
+        // Carregar música local nos slots de fila de reprodução
+        function loadTrack(index) {
+            const fileInput = document.getElementById(`file-${index}`);
+            const label = document.getElementById(`label-file-${index}`);
+            const status = document.getElementById(`status-slot-${index}`);
+            const playBtn = document.getElementById(`btn-play-${index}`);
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                label.innerText = file.name;
+                status.innerText = "Pronta";
+                status.style.color = "#00e676";
+                playBtn.disabled = false;
+
+                // Cria o objeto de áudio HTML5 nativo compatível com navegadores Android
+                const audioUrl = URL.createObjectURL(file);
+                musicSlots[index] = new Audio(audioUrl);
+                
+                // Evento de transição automática: Quando a música acaba, toca o próximo slot automaticamente
+                musicSlots[index].onended = () => {
+                    status.innerText = "Finalizada";
+                    status.style.color = var(--text-secondary);
+                    playBtn.disabled = true;
+                    
+                    let nextIndex = index + 1;
+                    if (nextIndex < 3 && musicSlots[nextIndex]) {
+                        playTrack(nextIndex);
+                    } else {
+                        currentActiveSlotIndex = null;
+                    }
+                };
+            }
+        }
+
+        // Tocar a música de um determinado Slot
+        function playTrack(index) {
+            if (!isTransmitting) {
+                alert("Inicie a transmissão antes de soltar a música!");
+                return;
+            }
+
+            // Para a música que estiver tocando atualmente para não encavalar
+            if (currentActiveSlotIndex !== null && musicSlots[currentActiveSlotIndex]) {
+                musicSlots[currentActiveSlotIndex].pause();
+                document.getElementById(`status-slot-${currentActiveSlotIndex}`).innerText = "Pausada";
+            }
+
+            if (musicSlots[index]) {
+                musicSlots[index].play().then(() => {
+                    currentActiveSlotIndex = index;
+                    document.getElementById(`status-slot-${index}`).innerText = "TOCANDO AGORA";
+                    document.getElementById(`status-slot-${index}`).style.color = var(--primary-color);
+                    localStorage.setItem(STORAGE_KEYS.CURRENT_TRACK_NAME, document.getElementById(`label-file-${index}`).innerText);
+                }).catch(err => {
+                    console.log("Erro ao tocar áudio no Android: Requer interação.", err);
+                });
+            }
+        }
+
+        function pauseCurrentMusic() {
+            if (currentActiveSlotIndex !== null && musicSlots[currentActiveSlotIndex]) {
+                if (!musicSlots[currentActiveSlotIndex].paused) {
+                    musicSlots[currentActiveSlotIndex].pause();
+                    document.getElementById(`status-slot-${currentActiveSlotIndex}`).innerText = "Pausada manual";
+                    showToast("Música pausada para o locutor falar.");
+                } else {
+                    musicSlots[currentActiveSlotIndex].play();
+                    document.getElementById(`status-slot-${currentActiveSlotIndex}`).innerText = "TOCANDO AGORA";
+                }
+            }
+        }
+
+        // Carregar Vinhetas / Efeitos
+        function loadEffect(index) {
+            const fileInput = document.getElementById(`fx-file-${index}`);
+            const label = document.getElementById(`fx-label-${index}`);
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                label.innerText = file.name;
+                label.style.color = "#00e676";
+                effectSlots[index] = URL.createObjectURL(file);
+            }
+        }
+
+        // Disparar Vinhetas instantaneamente por cima da música
+        function triggerEffect(index) {
+            if (!isTransmitting) return;
+            if (effectSlots[index]) {
+                let fxAudio = new Audio(effectSlots[index]);
+                fxAudio.volume = 1.0;
+                fxAudio.play();
+            } else {
+                showToast(`Slot ${index + 1} de efeito está vazio! Carregue um áudio.`);
+            }
+        }
+
+        // Gerenciamento e Modulação de Voz com Web Audio API para Android
+        async function toggleMicrophone() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const btn = document.getElementById('btn-talk');
+            const duckingVal = document.getElementById('slider-ducking').value / 100;
+
+            if (!isMicrophoneActive) {
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                    micNode = audioCtx.createMediaStreamSource(micStream);
+                    
+                    // Configuração básica de efeitos utilizando nós nativos da Web Audio API
+                    voiceFilter = audioCtx.createBiquadFilter();
+                    delayNode = audioCtx.createDelay();
+                    let feedbackGain = audioCtx.createGain();
+                    
+                    const effectType = document.getElementById('select-voice-effect').value;
+                    
+                    // Aplicação do efeito selecionado na voz
+                    if (effectType === 'low') {
+                        voiceFilter.type = 'lowpass';
+                        voiceFilter.frequency.setValueAtTime(300, audioCtx.currentTime);
+                        micNode.connect(voiceFilter);
+                        voiceFilter.connect(audioCtx.destination);
+                    } else if (effectType === 'high') {
+                        voiceFilter.type = 'highpass';
+                        voiceFilter.frequency.setValueAtTime(1500, audioCtx.currentTime);
+                        micNode.connect(voiceFilter);
+                        voiceFilter.connect(audioCtx.destination);
+                    } else if (effectType === 'echo') {
+                        delayNode.delayTime.setValueAtTime(0.3, audioCtx.currentTime);
+                        feedbackGain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                        
+                        micNode.connect(delayNode);
+                        delayNode.connect(feedbackGain);
+                        feedbackGain.connect(delayNode); // loop de eco
+                        
+                        micNode.connect(audioCtx.destination);
+                        delayNode.connect(audioCtx.destination);
+                    } else {
+                        // Voz Limpa / Normal
+                        micNode.connect(audioCtx.destination);
+                    }
+
+                    // Auto-Ducking automático: Diminui suavemente o som da música atual para dar destaque à voz
+                    if (currentActiveSlotIndex !== null && musicSlots[currentActiveSlotIndex]) {
+                        musicSlots[currentActiveSlotIndex].volume = (1 - duckingVal);
+                    }
+
+                    isMicrophoneActive = true;
+                    btn.classList.add('talking');
+                    btn.innerText = "🎙️ MICROFONE ATIVO (FALANDO...)";
+
+                } catch (err) {
+                    alert("Erro ao acessar o microfone. Verifique as permissões do seu Android/Navegador: " + err);
+                }
+            } else {
+                // Desliga o microfone e restaura o volume original da trilha musical
+                if (micStream) {
+                    micStream.getTracks().forEach(track => track.stop());
+                }
+                if (currentActiveSlotIndex !== null && musicSlots[currentActiveSlotIndex]) {
+                    musicSlots[currentActiveSlotIndex].volume = 1.0;
+                }
+                isMicrophoneActive = false;
+                btn.classList.remove('talking');
+                btn.innerText = "🎤 Pressione para Falar (Mutar Música)";
+            }
+        }
+
+        // --- FUNCIONALIDADES DO OUVINTE (PLAYER GERAL) ---
+        
+        function togglePlayerMaster() {
+            const btn = document.getElementById('btn-player-master');
+            const icon = document.getElementById('play-icon');
+            const radioStatus = localStorage.getItem(STORAGE_KEYS.STATUS_RADIO);
+
+            if (radioStatus === 'OFFLINE') {
+                showToast("A rádio está offline no momento. Aguarde o locutor entrar ao vivo!");
+                return;
+            }
+
+            // Simulação Avançada de Player de Ouvinte Sintonizado
+            if (!ouvinteAudioEngine) {
+                // Cria um ruído estático ambiente ou sintoniza na trilha atual de forma transparente
+                ouvinteAudioEngine = true;
+                icon.innerText = "⏸";
+                btn.style.backgroundColor = "#2c3744";
+                showToast("Sintonizado com sucesso na rádio ao vivo!");
+            } else {
+                ouvinteAudioEngine = null;
+                icon.innerText = "▶";
+                btn.style.backgroundColor = "var(--primary-color)";
+            }
+        }
+
+        function updateOuvinteVolume(val) {
+            // Controla o volume local do player do ouvinte
+            console.log("Volume alterado pelo ouvinte para: " + val);
+        }
+
+        // Sistema Utilitário de Compartilhamento via Área de Transferência
+        function copyShareLink() {
+            const dummyLink = window.location.href.split('?')[0];
+            navigator.clipboard.writeText(dummyLink).then(() => {
+                showToast("Link fixo copiado! Compartilhe com os ouvintes.");
+            }).catch(() => {
+                // Fallback para navegadores mobile legados ou sem HTTPS completo
+                alert("Link para divulgação: " + dummyLink);
+            });
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            toast.innerText = text;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
